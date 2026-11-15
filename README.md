@@ -51,8 +51,9 @@ Site dùng `HashRouter` và `base: './'` nên chạy được dưới bất kỳ
 
 ## Nhắc học qua Telegram
 
-Workflow `.github/workflows/study-reminder.yml` chạy lúc 20:00 giờ Việt Nam mỗi ngày, gửi một tin nhắn gồm flashcard,
-câu hỏi trắc nghiệm (đáp án che bằng spoiler) và gợi ý một bài học.
+Workflow `.github/workflows/study-reminder.yml` chạy lúc 20:00 giờ Việt Nam mỗi ngày. Mỗi ngày là một bài theo thứ tự
+lộ trình: tin nhắn giới thiệu bài kèm flashcard (đáp án che bằng spoiler) và nút mở bài, tiếp theo là một câu quiz
+dạng poll của Telegram (chọn đáp án là thấy đúng/sai và giải thích).
 
 1. Trên Telegram, chat với **@BotFather**, gõ `/newbot` và làm theo hướng dẫn để lấy **bot token**.
 2. Mở chat với bot vừa tạo và gửi một tin bất kỳ (ví dụ `/start`).
@@ -61,7 +62,8 @@ câu hỏi trắc nghiệm (đáp án che bằng spoiler) và gợi ý một bà
    `TELEGRAM_BOT_TOKEN` và `TELEGRAM_CHAT_ID`.
 5. Vào tab **Actions → Study reminder (Telegram) → Run workflow** để gửi thử.
 
-Tuỳ chọn: tạo biến (tab *Variables*) `STUDY_TRACK` = `sa` hoặc `lead` để chỉ nhắc nội dung một lộ trình. Muốn đổi giờ,
+Tuỳ chọn: tạo biến (tab *Variables*) `STUDY_TRACK` = `sa` hoặc `lead` để chỉ nhắc nội dung một lộ trình, và
+`STUDY_START_DATE` (dạng `2026-11-15`) là ngày gửi bài 1. Muốn đổi giờ,
 sửa dòng `cron` (giờ UTC). Lưu ý GitHub có thể chạy lịch trễ vài phút và tự tắt lịch nếu repo không có commit trong 60 ngày.
 
 Chạy thử không gửi: `DRY_RUN=1 node --experimental-strip-types scripts/telegram-reminder.mjs`

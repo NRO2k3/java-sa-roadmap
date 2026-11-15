@@ -24,3 +24,5 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           # Tuỳ chọn: biến repo STUDY_TRACK = sa hoặc lead để chỉ nhắc theo một lộ trình
           TRACK: ${{ vars.STUDY_TRACK }}
+          # Tuỳ chọn: biến repo STUDY_START_DATE (YYYY-MM-DD) là ngày gửi bài 1, mỗi ngày sau tiến một bài
+          START_DATE: ${{ vars.STUDY_START_DATE }}
