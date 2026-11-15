@@ -2,13 +2,16 @@ import { DeleteOutlined, DownloadOutlined, UploadOutlined } from '@ant-design/ic
 import { App, Button, Card, Col, Popconfirm, Progress, Row, Space, Statistic, Table, Tag, Typography, Upload } from 'antd';
 import { Link } from 'react-router-dom';
 import { PhaseAvatar } from '../components/PhaseIcon';
-import { allSkillIds, phaseSkillIds, phases, type Phase } from '../data/roadmap';
+import TrackSwitch from '../components/TrackSwitch';
+import { allSkillIds, phaseSkillIds, trackSkillIds, type Phase } from '../data/roadmap';
 import { percent, useProgress } from '../progress';
+import { useTrack } from '../track';
 
 const { Title, Paragraph, Text } = Typography;
 
 interface PhaseRow {
   phase: Phase;
+  order: number;
   done: number;
   total: number;
   pct: number;
@@ -23,14 +26,16 @@ function statusTag(pct: number) {
 export default function ProgressPage() {
   const { done, countDone, reset, importIds } = useProgress();
   const { message } = App.useApp();
+  const { track, trackPhaseList } = useTrack();
 
-  const rows: PhaseRow[] = phases.map((phase) => {
+  const rows: PhaseRow[] = trackPhaseList.map((phase, i) => {
     const ids = phaseSkillIds(phase);
     const d = countDone(ids);
-    return { phase, done: d, total: ids.length, pct: percent(d, ids.length) };
+    return { phase, order: i + 1, done: d, total: ids.length, pct: percent(d, ids.length) };
   });
-  const totalDone = countDone(allSkillIds);
-  const overall = percent(totalDone, allSkillIds.length);
+  const skillIds = trackSkillIds(track);
+  const totalDone = countDone(skillIds);
+  const overall = percent(totalDone, skillIds.length);
   const phasesDone = rows.filter((r) => r.pct === 100).length;
   // Ước tính số tuần còn lại theo tỉ lệ kỹ năng chưa xong của từng giai đoạn
   const weeksLeft = Math.round(rows.reduce((sum, r) => sum + r.phase.weeks * (1 - r.done / r.total), 0));
@@ -63,15 +68,19 @@ export default function ProgressPage() {
     <div className="page">
       <Title level={2}>Tiến độ của tôi</Title>
       <Paragraph type="secondary">
-        Tiến độ được lưu trong trình duyệt (localStorage). Xuất file JSON để sao lưu hoặc chuyển sang máy khác.
+        Tiến độ được lưu trong trình duyệt (localStorage). Xuất file JSON để sao lưu hoặc chuyển sang máy khác. Các giai
+        đoạn dùng chung được tính cho cả hai lộ trình.
       </Paragraph>
+      <div style={{ marginBottom: 16 }}>
+        <TrackSwitch />
+      </div>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} md={8}>
           <Card style={{ textAlign: 'center', height: '100%' }}>
             <Progress type="dashboard" percent={overall} size={180} />
             <div>
-              <Text type="secondary">Hoàn thành tổng thể</Text>
+              <Text type="secondary">Hoàn thành lộ trình {track.name}</Text>
             </div>
           </Card>
         </Col>
@@ -79,12 +88,12 @@ export default function ProgressPage() {
           <Row gutter={[16, 16]}>
             <Col xs={12}>
               <Card>
-                <Statistic title="Kỹ năng đã đạt" value={totalDone} suffix={`/ ${allSkillIds.length}`} />
+                <Statistic title="Kỹ năng đã đạt" value={totalDone} suffix={`/ ${skillIds.length}`} />
               </Card>
             </Col>
             <Col xs={12}>
               <Card>
-                <Statistic title="Giai đoạn hoàn thành" value={phasesDone} suffix={`/ ${phases.length}`} />
+                <Statistic title="Giai đoạn hoàn thành" value={phasesDone} suffix={`/ ${rows.length}`} />
               </Card>
             </Col>
             <Col xs={24}>
@@ -99,7 +108,7 @@ export default function ProgressPage() {
                   </Upload>
                   <Popconfirm
                     title="Xoá toàn bộ tiến độ?"
-                    description="Thao tác này không thể hoàn tác."
+                    description="Xoá tiến độ của cả hai lộ trình, không thể hoàn tác."
                     okText="Xoá"
                     cancelText="Huỷ"
                     okButtonProps={{ danger: true }}
@@ -108,7 +117,7 @@ export default function ProgressPage() {
                       message.success('Đã đặt lại tiến độ');
                     }}
                   >
-                    <Button danger icon={<DeleteOutlined />} disabled={totalDone === 0}>
+                    <Button danger icon={<DeleteOutlined />} disabled={done.size === 0}>
                       Đặt lại
                     </Button>
                   </Popconfirm>
@@ -134,7 +143,7 @@ export default function ProgressPage() {
                   <Space>
                     <PhaseAvatar icon={r.phase.icon} color={r.phase.color} size={32} />
                     <span>
-                      {r.phase.order}. {r.phase.title}
+                      {r.order}. {r.phase.title}
                     </span>
                   </Space>
                 </Link>

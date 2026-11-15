@@ -3,8 +3,10 @@ import { Card, Empty, Progress, Segmented, Space, Tag, Timeline, Typography } fr
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PhaseIcon from '../components/PhaseIcon';
-import { levelColor, phaseSkillIds, phases, totalWeeks, type Level } from '../data/roadmap';
+import TrackSwitch from '../components/TrackSwitch';
+import { levelColor, phaseSkillIds, trackWeeks, type Level } from '../data/roadmap';
 import { percent, useProgress } from '../progress';
+import { useTrack } from '../track';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -12,33 +14,41 @@ type Filter = 'Tất cả' | Level;
 
 export default function Roadmap() {
   const { countDone } = useProgress();
+  const { track, trackPhaseList } = useTrack();
   const [filter, setFilter] = useState<Filter>('Tất cả');
+  const totalWeeks = trackWeeks(track);
 
-  const visible = phases
-    .map((p) => ({ ...p, topics: p.topics.filter((t) => filter === 'Tất cả' || t.level === filter) }))
-    .filter((p) => p.topics.length > 0);
+  const visible = trackPhaseList
+    .map((p, i) => ({
+      phase: p,
+      order: i + 1,
+      topics: p.topics.filter((t) => filter === 'Tất cả' || t.level === filter),
+    }))
+    .filter((v) => v.topics.length > 0);
 
   return (
     <div className="page">
-      <Title level={2}>Lộ trình tổng quan</Title>
+      <Title level={2}>Lộ trình tổng quan: {track.name}</Title>
       <Paragraph type="secondary">
-        Tổng thời gian ước tính khoảng {totalWeeks} tuần (~{Math.round(totalWeeks / 4.3)} tháng) nếu học 10–15 giờ mỗi tuần.
-        Các giai đoạn 6–7 có thể học song song với giai đoạn 5.
+        Tổng thời gian ước tính khoảng {totalWeeks} tuần (~{Math.round(totalWeeks / 4.3)} tháng) nếu học 10–15 giờ mỗi tuần.{' '}
+        {track.note}
       </Paragraph>
 
-      <Segmented<Filter>
-        options={['Tất cả', 'Cơ bản', 'Trung cấp', 'Nâng cao']}
-        value={filter}
-        onChange={setFilter}
-        style={{ marginBottom: 24 }}
-      />
+      <Space wrap size="middle" style={{ marginBottom: 24 }}>
+        <TrackSwitch />
+        <Segmented<Filter>
+          options={['Tất cả', 'Cơ bản', 'Trung cấp', 'Nâng cao']}
+          value={filter}
+          onChange={setFilter}
+        />
+      </Space>
 
       {visible.length === 0 ? (
         <Empty />
       ) : (
         <Timeline
-          items={visible.map((p) => {
-            const ids = phaseSkillIds(phases.find((x) => x.id === p.id)!);
+          items={visible.map(({ phase: p, order, topics }) => {
+            const ids = phaseSkillIds(p);
             const pct = percent(countDone(ids), ids.length);
             return {
               key: p.id,
@@ -48,7 +58,7 @@ export default function Roadmap() {
                   <Space wrap style={{ justifyContent: 'space-between', width: '100%' }}>
                     <div>
                       <Text type="secondary" style={{ fontSize: 12 }}>
-                        GIAI ĐOẠN {p.order}
+                        GIAI ĐOẠN {order}
                       </Text>
                       <Title level={4} style={{ margin: 0 }}>
                         {p.title}
@@ -66,7 +76,7 @@ export default function Roadmap() {
                   </Space>
                   <Paragraph style={{ marginBottom: 8 }}>{p.goal}</Paragraph>
                   <Space size={[6, 6]} wrap>
-                    {p.topics.map((t) => (
+                    {topics.map((t) => (
                       <Link key={t.id} to={`/phase/${p.id}?topic=${t.id}`}>
                         <Tag color={levelColor[t.level]} style={{ cursor: 'pointer' }}>
                           {t.title}

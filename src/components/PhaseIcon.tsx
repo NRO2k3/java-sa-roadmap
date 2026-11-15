@@ -1,13 +1,19 @@
 import {
+  AimOutlined,
+  AlertOutlined,
   ApiOutlined,
+  AuditOutlined,
   ClusterOutlined,
   CloudServerOutlined,
   CodeOutlined,
   DatabaseOutlined,
   DeploymentUnitOutlined,
+  RiseOutlined,
   SafetyCertificateOutlined,
+  ScheduleOutlined,
   ShareAltOutlined,
   SolutionOutlined,
+  TeamOutlined,
   TrophyOutlined,
 } from '@ant-design/icons';
 import type { CSSProperties } from 'react';
@@ -24,6 +30,12 @@ const icons: Record<PhaseIconKey, typeof CodeOutlined> = {
   design: DeploymentUnitOutlined,
   architect: SolutionOutlined,
   career: TrophyOutlined,
+  quality: AuditOutlined,
+  ops: AlertOutlined,
+  leadership: AimOutlined,
+  people: TeamOutlined,
+  delivery: ScheduleOutlined,
+  growth: RiseOutlined,
 };
 
 export default function PhaseIcon({ icon, style }: { icon: PhaseIconKey; style?: CSSProperties }) {

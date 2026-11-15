@@ -33,7 +33,8 @@ import viVN from 'antd/locale/vi_VN';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import PhaseIcon from './components/PhaseIcon';
-import { allSkillIds, phases } from './data/roadmap';
+import TrackSwitch from './components/TrackSwitch';
+import { phases, trackSkillIds, type Phase } from './data/roadmap';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import Patterns from './pages/Patterns';
@@ -43,6 +44,7 @@ import Quiz from './pages/Quiz';
 import Resources from './pages/Resources';
 import Roadmap from './pages/Roadmap';
 import { percent, useProgress } from './progress';
+import { useTrack } from './track';
 
 const { Header, Sider, Content, Footer } = Layout;
 const THEME_KEY = 'java-sa-roadmap:theme';
@@ -59,17 +61,17 @@ function initialDark() {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false;
 }
 
-const menuItems: MenuProps['items'] = [
+const buildMenu = (trackPhaseList: Phase[]): MenuProps['items'] => [
   { key: '/', icon: <HomeOutlined />, label: <Link to="/">Trang chủ</Link> },
   { key: '/roadmap', icon: <NodeIndexOutlined />, label: <Link to="/roadmap">Lộ trình tổng quan</Link> },
   {
     key: 'phases',
     icon: <AppstoreOutlined />,
     label: 'Các giai đoạn',
-    children: phases.map((p) => ({
+    children: trackPhaseList.map((p, i) => ({
       key: `/phase/${p.id}`,
       icon: <PhaseIcon icon={p.icon} style={{ color: p.color }} />,
-      label: <Link to={`/phase/${p.id}`}>{`${p.order}. ${p.title}`}</Link>,
+      label: <Link to={`/phase/${p.id}`}>{`${i + 1}. ${p.title}`}</Link>,
     })),
   },
   { key: '/patterns', icon: <BulbOutlined />, label: <Link to="/patterns">Mẫu kiến trúc</Link> },
@@ -85,9 +87,10 @@ function GlobalSearch() {
   const options = useMemo(() => {
     const q = value.trim().toLowerCase();
     if (!q) return [];
+    // Tìm trên mọi giai đoạn; trang chi tiết tự chuyển sang lộ trình chứa giai đoạn đó
     return phases
       .map((p) => ({
-        label: `${p.order}. ${p.title}`,
+        label: p.title,
         options: p.topics
           .filter(
             (t) =>
@@ -125,7 +128,9 @@ export default function App() {
   const isDesktop = screens.lg ?? true;
   const location = useLocation();
   const { countDone } = useProgress();
-  const overall = percent(countDone(allSkillIds), allSkillIds.length);
+  const { track, trackPhaseList } = useTrack();
+  const trackIds = trackSkillIds(track);
+  const overall = percent(countDone(trackIds), trackIds.length);
 
   useEffect(() => {
     try {
@@ -149,10 +154,10 @@ export default function App() {
       <img src="./favicon.svg" alt="" width={32} height={32} />
       <div style={{ lineHeight: 1.2 }}>
         <Typography.Text strong style={{ fontSize: 16, display: 'block' }}>
-          Java SA Roadmap
+          Java Career Roadmap
         </Typography.Text>
         <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          Lộ trình Solution Architect
+          Solution Architect · Dev Lead
         </Typography.Text>
       </div>
     </Link>
@@ -162,8 +167,9 @@ export default function App() {
     <>
       {brand}
       <div style={{ padding: '0 20px 12px' }}>
-        <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-          Tiến độ tổng thể
+        <TrackSwitch block vertical />
+        <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginTop: 12 }}>
+          Tiến độ lộ trình {track.name}
         </Typography.Text>
         <Progress percent={overall} size="small" />
       </div>
@@ -171,7 +177,7 @@ export default function App() {
         mode="inline"
         selectedKeys={[selectedKey]}
         defaultOpenKeys={openKeys}
-        items={menuItems}
+        items={buildMenu(trackPhaseList)}
         style={{ borderInlineEnd: 'none' }}
       />
     </>
@@ -243,7 +249,7 @@ export default function App() {
             </Content>
             <Footer style={{ textAlign: 'center' }}>
               <Typography.Text type="secondary">
-                Java SA Roadmap · Xây dựng với React + Ant Design · Tiến độ được lưu trên trình duyệt của bạn
+                Java Career Roadmap · Xây dựng với React + Ant Design · Tiến độ được lưu trên trình duyệt của bạn
               </Typography.Text>
             </Footer>
           </Layout>

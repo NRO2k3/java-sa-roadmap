@@ -2,8 +2,10 @@ import { BookOutlined, GlobalOutlined, LinkOutlined, SafetyCertificateOutlined }
 import { Card, Col, List, Row, Space, Switch, Table, Tabs, Tag, Typography } from 'antd';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { phases } from '../data/roadmap';
+import TrackSwitch from '../components/TrackSwitch';
+import { phaseById } from '../data/roadmap';
 import { books, certifications, sites, type Book, type Certification } from '../data/resources';
+import { useTrack } from '../track';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -13,9 +15,10 @@ const certLevelColor: Record<Certification['level'], string> = {
   Expert: 'purple',
 };
 
-function BooksTab() {
+function BooksTab({ data: trackBooks }: { data: Book[] }) {
+  const { trackPhaseList } = useTrack();
   const [mustReadOnly, setMustReadOnly] = useState(false);
-  const data = mustReadOnly ? books.filter((b) => b.mustRead) : books;
+  const data = mustReadOnly ? trackBooks.filter((b) => b.mustRead) : trackBooks;
 
   return (
     <>
@@ -45,10 +48,10 @@ function BooksTab() {
             title: 'Giai đoạn',
             dataIndex: 'phaseId',
             width: 200,
-            filters: phases.map((p) => ({ text: p.title, value: p.id })),
+            filters: trackPhaseList.map((p) => ({ text: p.title, value: p.id })),
             onFilter: (value, b) => b.phaseId === value,
             render: (id: string) => {
-              const p = phases.find((x) => x.id === id)!;
+              const p = phaseById(id)!;
               return (
                 <Link to={`/phase/${p.id}`}>
                   <Tag color={p.color}>{p.title}</Tag>
@@ -62,10 +65,10 @@ function BooksTab() {
   );
 }
 
-function CertsTab() {
+function CertsTab({ data }: { data: Certification[] }) {
   return (
     <Row gutter={[16, 16]}>
-      {certifications.map((c) => (
+      {data.map((c) => (
         <Col xs={24} md={12} xl={8} key={c.name}>
           <Card
             title={c.provider}
@@ -117,19 +120,30 @@ function SitesTab() {
 }
 
 export default function Resources() {
+  const { track } = useTrack();
+  const trackBooks = books.filter((b) => track.phaseIds.includes(b.phaseId));
+  const trackCerts = certifications.filter((c) => c.tracks.includes(track.id));
+
   return (
     <div className="page">
       <Title level={2}>Tài nguyên học tập</Title>
       <Paragraph type="secondary">
-        Sách, chứng chỉ và website được chọn lọc cho lộ trình Java Solution Architect.
+        Sách và chứng chỉ được chọn lọc cho lộ trình Java {track.name}. Website tham khảo dùng chung cho cả hai lộ trình.
       </Paragraph>
+      <div style={{ marginBottom: 8 }}>
+        <TrackSwitch />
+      </div>
       <Tabs
         items={[
-          { key: 'books', label: <span><BookOutlined /> Sách ({books.length})</span>, children: <BooksTab /> },
+          {
+            key: 'books',
+            label: <span><BookOutlined /> Sách ({trackBooks.length})</span>,
+            children: <BooksTab data={trackBooks} />,
+          },
           {
             key: 'certs',
-            label: <span><SafetyCertificateOutlined /> Chứng chỉ ({certifications.length})</span>,
-            children: <CertsTab />,
+            label: <span><SafetyCertificateOutlined /> Chứng chỉ ({trackCerts.length})</span>,
+            children: <CertsTab data={trackCerts} />,
           },
           { key: 'sites', label: <span><GlobalOutlined /> Website ({sites.length})</span>, children: <SitesTab /> },
         ]}

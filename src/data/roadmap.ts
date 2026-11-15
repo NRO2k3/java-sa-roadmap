@@ -1,3 +1,5 @@
+import { leadPhases } from './leadPhases';
+
 export type Level = 'Cơ bản' | 'Trung cấp' | 'Nâng cao';
 
 export type ResourceType = 'doc' | 'book' | 'course' | 'article' | 'tool';
@@ -19,7 +21,6 @@ export interface Topic {
 
 export interface Phase {
   id: string;
-  order: number;
   title: string;
   subtitle: string;
   role: string;
@@ -42,12 +43,17 @@ export type PhaseIcon =
   | 'security'
   | 'design'
   | 'architect'
-  | 'career';
+  | 'career'
+  | 'quality'
+  | 'ops'
+  | 'leadership'
+  | 'people'
+  | 'delivery'
+  | 'growth';
 
-export const phases: Phase[] = [
+const corePhases: Phase[] = [
   {
     id: 'java-core',
-    order: 1,
     title: 'Nền tảng Java Core',
     subtitle: 'Ngôn ngữ, JVM và kỹ thuật lập trình vững chắc',
     role: 'Junior Java Developer',
@@ -152,7 +158,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'spring',
-    order: 2,
     title: 'Hệ sinh thái Spring',
     subtitle: 'Spring Framework, Spring Boot và các dự án vệ tinh',
     role: 'Java Backend Developer',
@@ -251,7 +256,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'data',
-    order: 3,
     title: 'Dữ liệu & Lưu trữ',
     subtitle: 'SQL, NoSQL, caching và tìm kiếm',
     role: 'Mid-level Backend Developer',
@@ -331,7 +335,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'integration',
-    order: 4,
     title: 'Tích hợp & Messaging',
     subtitle: 'API, message broker và kiến trúc hướng sự kiện',
     role: 'Senior Backend Developer',
@@ -414,7 +417,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'microservices',
-    order: 5,
     title: 'Microservices & Hệ phân tán',
     subtitle: 'DDD, Spring Cloud, resilience và observability',
     role: 'Senior Developer / Tech Lead',
@@ -494,7 +496,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'cloud',
-    order: 6,
     title: 'Cloud & DevOps',
     subtitle: 'Container, Kubernetes, CI/CD, IaC và nền tảng cloud',
     role: 'Tech Lead',
@@ -593,7 +594,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'security',
-    order: 7,
     title: 'Bảo mật kiến trúc',
     subtitle: 'Security by design cho hệ thống doanh nghiệp',
     role: 'Tech Lead',
@@ -655,7 +655,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'system-design',
-    order: 8,
     title: 'System Design & Kiến trúc',
     subtitle: 'Phong cách kiến trúc, thuộc tính chất lượng, thiết kế quy mô lớn',
     role: 'Associate Solution Architect',
@@ -735,7 +734,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'sa-practice',
-    order: 9,
     title: 'Năng lực Solution Architect',
     subtitle: 'Từ yêu cầu nghiệp vụ đến giải pháp được phê duyệt',
     role: 'Solution Architect',
@@ -827,7 +825,6 @@ export const phases: Phase[] = [
   },
   {
     id: 'career',
-    order: 10,
     title: 'Chứng chỉ & Sự nghiệp',
     subtitle: 'Khẳng định năng lực và phát triển nghề nghiệp',
     role: 'Senior Solution Architect',
@@ -891,6 +888,118 @@ export const phases: Phase[] = [
   },
 ];
 
+// Toàn bộ giai đoạn (không trùng lặp); mỗi lộ trình chọn ra danh sách của riêng mình
+export const phases: Phase[] = [...corePhases, ...leadPhases];
+
+export type TrackId = 'sa' | 'lead';
+
+export interface CareerStep {
+  title: string;
+  description: string;
+}
+
+export interface Track {
+  id: TrackId;
+  name: string;
+  tagline: string;
+  heroTitle: string;
+  heroDescription: string;
+  note: string;
+  phaseIds: string[];
+  careerPath: CareerStep[];
+  // Bậc nghề nghiệp tương ứng với từng giai đoạn (cùng thứ tự với phaseIds)
+  careerStepOfPhase: number[];
+  responsibilitiesTitle: string;
+  responsibilities: string[];
+}
+
+export const tracks: Track[] = [
+  {
+    id: 'sa',
+    name: 'Solution Architect',
+    tagline: 'Java · Spring · Cloud · Kiến trúc',
+    heroTitle: 'Lộ trình trở thành Solution Architect',
+    heroDescription:
+      'Từ Java Core đến kiến trúc giải pháp doanh nghiệp. Đánh dấu từng kỹ năng, làm dự án cột mốc, kiểm tra kiến thức bằng trắc nghiệm và theo dõi tiến độ của bạn.',
+    note: 'Các giai đoạn Cloud & DevOps và Bảo mật có thể học song song với Microservices.',
+    phaseIds: [
+      'java-core',
+      'spring',
+      'data',
+      'integration',
+      'microservices',
+      'cloud',
+      'security',
+      'system-design',
+      'sa-practice',
+      'career',
+    ],
+    careerPath: [
+      { title: 'Junior Developer', description: 'Java Core, Git, SQL' },
+      { title: 'Backend Developer', description: 'Spring Boot, REST, JPA' },
+      { title: 'Senior Developer', description: 'Hệ phân tán, messaging' },
+      { title: 'Tech Lead', description: 'Cloud, DevOps, bảo mật' },
+      { title: 'Solution Architect', description: 'Thiết kế giải pháp end-to-end' },
+    ],
+    careerStepOfPhase: [0, 1, 2, 2, 3, 3, 3, 4, 4, 4],
+    responsibilitiesTitle: 'Solution Architect làm gì?',
+    responsibilities: [
+      'Chuyển yêu cầu kinh doanh thành giải pháp kỹ thuật khả thi',
+      'Lựa chọn công nghệ, nền tảng và giải thích các đánh đổi',
+      'Đảm bảo yêu cầu phi chức năng: hiệu năng, bảo mật, khả năng mở rộng, chi phí',
+      'Tài liệu hoá kiến trúc (C4, ADR) và truyền đạt cho mọi bên liên quan',
+      'Đồng hành cùng đội phát triển từ PoC đến vận hành',
+    ],
+  },
+  {
+    id: 'lead',
+    name: 'Dev Lead',
+    tagline: 'Java · Spring · Chất lượng · Con người',
+    heroTitle: 'Lộ trình trở thành Dev Lead Java',
+    heroDescription:
+      'Vững kỹ thuật Java, đặt chuẩn chất lượng cho team, vận hành production, rồi phát triển kỹ năng lãnh đạo: 1:1, mentoring, tuyển dụng, Agile và làm việc với stakeholder.',
+    note: 'Hai giai đoạn Con người và Delivery nên bắt đầu song song ngay khi bạn được giao dẫn dắt một nhóm nhỏ, không cần đợi xong phần kỹ thuật.',
+    phaseIds: [
+      'java-core',
+      'spring',
+      'data',
+      'engineering-practices',
+      'microservices',
+      'production-ops',
+      'tech-leadership',
+      'people',
+      'delivery',
+      'lead-career',
+    ],
+    careerPath: [
+      { title: 'Junior Developer', description: 'Java Core, Git, SQL' },
+      { title: 'Backend Developer', description: 'Spring Boot, REST, JPA, dữ liệu' },
+      { title: 'Senior Developer', description: 'Chất lượng code, hệ phân tán' },
+      { title: 'Tech Lead', description: 'Vận hành, định hướng kỹ thuật' },
+      { title: 'Dev Lead', description: 'Dẫn dắt con người và delivery' },
+    ],
+    careerStepOfPhase: [0, 1, 1, 2, 2, 3, 3, 4, 4, 4],
+    responsibilitiesTitle: 'Dev Lead làm gì?',
+    responsibilities: [
+      'Dẫn dắt kỹ thuật cho team 4–10 người, giữ chất lượng code và kiến trúc ở cấp team',
+      'Lập kế hoạch, ước lượng và đảm bảo team giao hàng đúng cam kết',
+      '1:1, mentoring và phát triển năng lực từng thành viên',
+      'Tham gia tuyển dụng, onboarding và xây dựng văn hoá team',
+      'Là cầu nối giữa team với PO, Solution Architect, các team khác và ban quản lý',
+    ],
+  },
+];
+
+const phaseMap = new Map(phases.map((p) => [p.id, p]));
+
+export const phaseById = (id: string) => phaseMap.get(id);
+
+export const trackById = (id: string) => tracks.find((t) => t.id === id);
+
+export const trackPhases = (track: Track) => track.phaseIds.map((id) => phaseMap.get(id)!);
+
+export const isSharedPhase = (phaseId: string) => tracks.every((t) => t.phaseIds.includes(phaseId));
+
 export const skillId = (phaseId: string, topicId: string, index: number) =>
   `${phaseId}.${topicId}.${index}`;
 
@@ -902,7 +1011,9 @@ export const topicSkillIds = (phaseId: string, topic: Topic) =>
 
 export const allSkillIds = phases.flatMap(phaseSkillIds);
 
-export const totalWeeks = phases.reduce((sum, p) => sum + p.weeks, 0);
+export const trackSkillIds = (track: Track) => trackPhases(track).flatMap(phaseSkillIds);
+
+export const trackWeeks = (track: Track) => trackPhases(track).reduce((sum, p) => sum + p.weeks, 0);
 
 export const levelColor: Record<Level, string> = {
   'Cơ bản': 'green',

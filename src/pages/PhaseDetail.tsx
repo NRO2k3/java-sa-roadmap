@@ -31,16 +31,19 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { PhaseAvatar } from '../components/PhaseIcon';
 import {
   levelColor,
+  phaseById,
   phaseSkillIds,
-  phases,
   resourceTypeLabel,
   skillId,
   topicSkillIds,
+  trackPhases,
+  tracks,
   type Phase,
   type Topic,
 } from '../data/roadmap';
 import { books } from '../data/resources';
 import { percent, useProgress } from '../progress';
+import { useTrack } from '../track';
 import NotFound from './NotFound';
 
 const { Title, Paragraph, Text } = Typography;
@@ -120,9 +123,18 @@ export default function PhaseDetail() {
   const [params] = useSearchParams();
   const { countDone, setMany } = useProgress();
   const { token } = theme.useToken();
-  const index = phases.findIndex((p) => p.id === id);
-  const phase = phases[index];
+  const { track, setTrack } = useTrack();
+  const phase = id ? phaseById(id) : undefined;
+  // Link tới giai đoạn thuộc lộ trình khác (từ tìm kiếm, link chia sẻ) thì chuyển sang lộ trình đó
+  const activeTrack =
+    phase && !track.phaseIds.includes(phase.id) ? tracks.find((t) => t.phaseIds.includes(phase.id))! : track;
+  const trackPhaseList = trackPhases(activeTrack);
+  const index = phase ? trackPhaseList.indexOf(phase) : -1;
   const focusTopic = params.get('topic');
+
+  useEffect(() => {
+    if (activeTrack.id !== track.id) setTrack(activeTrack.id);
+  }, [activeTrack.id, track.id, setTrack]);
 
   useEffect(() => {
     if (!focusTopic) return;
@@ -138,8 +150,8 @@ export default function PhaseDetail() {
   const ids = phaseSkillIds(phase);
   const doneCount = countDone(ids);
   const pct = percent(doneCount, ids.length);
-  const prev = phases[index - 1];
-  const next = phases[index + 1];
+  const prev = trackPhaseList[index - 1];
+  const next = trackPhaseList[index + 1];
   const phaseBooks = books.filter((b) => b.phaseId === phase.id);
 
   return (
@@ -148,8 +160,8 @@ export default function PhaseDetail() {
         style={{ marginBottom: 16 }}
         items={[
           { title: <Link to="/"><HomeOutlined /></Link> },
-          { title: <Link to="/roadmap">Lộ trình</Link> },
-          { title: `Giai đoạn ${phase.order}` },
+          { title: <Link to="/roadmap">Lộ trình {activeTrack.name}</Link> },
+          { title: `Giai đoạn ${index + 1}` },
         ]}
       />
 
@@ -159,7 +171,7 @@ export default function PhaseDetail() {
             <Space align="start" size="middle">
               <PhaseAvatar icon={phase.icon} color={phase.color} size={56} />
               <div>
-                <Text type="secondary">GIAI ĐOẠN {phase.order} / {phases.length}</Text>
+                <Text type="secondary">GIAI ĐOẠN {index + 1} / {trackPhaseList.length}</Text>
                 <Title level={2} style={{ margin: '4px 0' }}>
                   {phase.title}
                 </Title>

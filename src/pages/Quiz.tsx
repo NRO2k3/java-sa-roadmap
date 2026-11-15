@@ -2,8 +2,10 @@ import { CheckCircleFilled, CloseCircleFilled, ReloadOutlined } from '@ant-desig
 import { Alert, Button, Card, Empty, List, Progress, Radio, Result, Select, Space, Tag, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import TrackSwitch from '../components/TrackSwitch';
 import { phases } from '../data/roadmap';
 import { questions, type Question } from '../data/quiz';
+import { useTrack } from '../track';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -18,11 +20,27 @@ function shuffle<T>(items: T[]): T[] {
   return a;
 }
 
+// Xáo cả thứ tự đáp án để vị trí đáp án đúng không đoán được
+function shuffleOptions(q: Question): Question {
+  const order = shuffle(q.options.map((_, i) => i));
+  return { ...q, options: order.map((i) => q.options[i]), answer: order.indexOf(q.answer) };
+}
+
 const phaseTitle = (id: string) => phases.find((p) => p.id === id)?.title ?? id;
 
 export default function Quiz() {
+  const { track } = useTrack();
+  // Đổi lộ trình thì làm bài mới từ đầu
+  return <QuizRun key={track.id} />;
+}
+
+function QuizRun() {
+  const { trackPhaseList } = useTrack();
   const [params, setParams] = useSearchParams();
-  const scope = params.get('phase') ?? ALL;
+  const trackPhaseIds = trackPhaseList.map((p) => p.id);
+  const requested = params.get('phase') ?? ALL;
+  const scope = trackPhaseIds.includes(requested) ? requested : ALL;
+  const trackQuestions = questions.filter((q) => trackPhaseIds.includes(q.phaseId));
   const [round, setRound] = useState(0);
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -30,7 +48,7 @@ export default function Quiz() {
   const [answers, setAnswers] = useState<number[]>([]);
 
   const deck: Question[] = useMemo(
-    () => shuffle(questions.filter((q) => scope === ALL || q.phaseId === scope)),
+    () => shuffle(trackQuestions.filter((q) => scope === ALL || q.phaseId === scope)).map(shuffleOptions),
     // round đổi để xáo lại bộ câu hỏi khi làm lại
     [scope, round],
   );
@@ -54,16 +72,16 @@ export default function Quiz() {
 
   const header = (
     <Space wrap style={{ marginBottom: 16 }}>
-      <Text>Phạm vi:</Text>
+      <TrackSwitch />
       <Select
         value={scope}
         onChange={changeScope}
         style={{ minWidth: 280 }}
         options={[
-          { value: ALL, label: `Tất cả giai đoạn (${questions.length} câu)` },
-          ...phases.map((p) => ({
+          { value: ALL, label: `Tất cả giai đoạn (${trackQuestions.length} câu)` },
+          ...trackPhaseList.map((p, i) => ({
             value: p.id,
-            label: `${p.order}. ${p.title} (${questions.filter((x) => x.phaseId === p.id).length} câu)`,
+            label: `${i + 1}. ${p.title} (${questions.filter((x) => x.phaseId === p.id).length} câu)`,
           })),
         ]}
       />
