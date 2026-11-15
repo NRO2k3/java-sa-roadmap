@@ -1,0 +1,26 @@
+name: Study reminder (Telegram)
+
+on:
+  schedule:
+    # 13:00 UTC = 20:00 giờ Việt Nam. Sửa dòng này để đổi giờ nhắc.
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Gửi lời nhắc
+        run: node --experimental-strip-types --no-warnings scripts/telegram-reminder.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # Tuỳ chọn: biến repo STUDY_TRACK = sa hoặc lead để chỉ nhắc theo một lộ trình
+          TRACK: ${{ vars.STUDY_TRACK }}

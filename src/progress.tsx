@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { logSkills } from './activity';
 
 const STORAGE_KEY = 'java-sa-roadmap:progress';
 
@@ -34,7 +35,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     }
   }, [done]);
 
+  const doneRef = useRef(done);
+  doneRef.current = done;
+
   const setMany = useCallback((ids: string[], checked: boolean) => {
+    // Ghi nhận cho trang thói quen, chỉ đếm kỹ năng mới đạt
+    const added = checked ? ids.filter((id) => !doneRef.current.has(id)).length : 0;
+    if (added > 0) logSkills(added);
     setDone((prev) => {
       const next = new Set(prev);
       ids.forEach((id) => (checked ? next.add(id) : next.delete(id)));

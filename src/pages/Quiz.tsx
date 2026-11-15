@@ -1,32 +1,29 @@
 import { CheckCircleFilled, CloseCircleFilled, ReloadOutlined } from '@ant-design/icons';
-import { Alert, Button, Card, Empty, List, Progress, Radio, Result, Select, Space, Tag, Typography } from 'antd';
+import { Alert, Button, Card, Empty, List, Progress, Radio, Result, Segmented, Select, Space, Tag, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import TrackSwitch from '../components/TrackSwitch';
-import { phases } from '../data/roadmap';
+import { lessonQuestions } from '../content/quizzes';
+import { phaseById } from '../data/roadmap';
 import { questions, type Question } from '../data/quiz';
+import { shuffle, shuffleOptions } from '../quizUtils';
+import { logQuiz } from '../activity';
 import { useTrack } from '../track';
 
 const { Title, Paragraph, Text } = Typography;
 
 const ALL = 'all';
+// 0 nghĩa là làm toàn bộ câu trong phạm vi
+const SIZES = [10, 20, 50, 0];
 
-function shuffle<T>(items: T[]): T[] {
-  const a = [...items];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
+// Câu hỏi tổng hợp của giai đoạn và câu hỏi cuối các bài học
+const pool = [...questions, ...lessonQuestions];
+
+function sourceLabel(q: Question) {
+  const phase = phaseById(q.phaseId);
+  const topic = phase?.topics.find((t) => t.id === q.topicId);
+  return topic ? `${phase!.title} · ${topic.title}` : (phase?.title ?? q.phaseId);
 }
-
-// Xáo cả thứ tự đáp án để vị trí đáp án đúng không đoán được
-function shuffleOptions(q: Question): Question {
-  const order = shuffle(q.options.map((_, i) => i));
-  return { ...q, options: order.map((i) => q.options[i]), answer: order.indexOf(q.answer) };
-}
-
-const phaseTitle = (id: string) => phases.find((p) => p.id === id)?.title ?? id;
 
 export default function Quiz() {
   const { track } = useTrack();
@@ -40,7 +37,8 @@ function QuizRun() {
   const trackPhaseIds = trackPhaseList.map((p) => p.id);
   const requested = params.get('phase') ?? ALL;
   const scope = trackPhaseIds.includes(requested) ? requested : ALL;
-  const trackQuestions = questions.filter((q) => trackPhaseIds.includes(q.phaseId));
+  const trackQuestions = pool.filter((q) => trackPhaseIds.includes(q.phaseId));
+  const [size, setSize] = useState(20);
   const [round, setRound] = useState(0);
   const [index, setIndex] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -48,9 +46,12 @@ function QuizRun() {
   const [answers, setAnswers] = useState<number[]>([]);
 
   const deck: Question[] = useMemo(
-    () => shuffle(trackQuestions.filter((q) => scope === ALL || q.phaseId === scope)).map(shuffleOptions),
+    () =>
+      shuffle(trackQuestions.filter((q) => scope === ALL || q.phaseId === scope))
+        .slice(0, size || undefined)
+        .map(shuffleOptions),
     // round đổi để xáo lại bộ câu hỏi khi làm lại
-    [scope, round],
+    [scope, size, round],
   );
 
   const restart = () => {
@@ -63,6 +64,11 @@ function QuizRun() {
 
   const changeScope = (value: string) => {
     setParams(value === ALL ? {} : { phase: value });
+    restart();
+  };
+
+  const changeSize = (value: number) => {
+    setSize(value);
     restart();
   };
 
@@ -81,9 +87,14 @@ function QuizRun() {
           { value: ALL, label: `Tất cả giai đoạn (${trackQuestions.length} câu)` },
           ...trackPhaseList.map((p, i) => ({
             value: p.id,
-            label: `${i + 1}. ${p.title} (${questions.filter((x) => x.phaseId === p.id).length} câu)`,
+            label: `${i + 1}. ${p.title} (${trackQuestions.filter((x) => x.phaseId === p.id).length} câu)`,
           })),
         ]}
+      />
+      <Segmented<number>
+        value={size}
+        onChange={changeSize}
+        options={SIZES.map((n) => ({ value: n, label: n ? `${n} câu` : 'Tất cả' }))}
       />
     </Space>
   );
@@ -161,14 +172,19 @@ function QuizRun() {
   return (
     <div className="page" style={{ maxWidth: 820 }}>
       <Title level={2}>Trắc nghiệm</Title>
-      <Paragraph type="secondary">Kiểm tra nhanh kiến thức của từng giai đoạn. Câu hỏi được xáo trộn mỗi lần làm.</Paragraph>
+      <Paragraph type="secondary">
+        Ôn tập tổng hợp từ câu hỏi của các giai đoạn và trắc nghiệm cuối mỗi bài học. Câu hỏi được chọn ngẫu nhiên và xáo
+        trộn mỗi lần làm.
+      </Paragraph>
       {header}
       <Card>
         <Space style={{ justifyContent: 'space-between', width: '100%' }} wrap>
           <Text type="secondary">
             Câu {index + 1}/{deck.length}
           </Text>
-          <Tag color="blue">{phaseTitle(q.phaseId)}</Tag>
+          <Tag color="blue" style={{ whiteSpace: 'normal' }}>
+            {sourceLabel(q)}
+          </Tag>
         </Space>
         <Progress percent={Math.round((index / deck.length) * 100)} showInfo={false} size="small" />
         <Title level={4} style={{ marginTop: 16 }}>
@@ -214,7 +230,14 @@ function QuizRun() {
 
         <div style={{ marginTop: 16, textAlign: 'right' }}>
           {!checked ? (
-            <Button type="primary" disabled={selected === null} onClick={() => setChecked(true)}>
+            <Button
+              type="primary"
+              disabled={selected === null}
+              onClick={() => {
+                setChecked(true);
+                logQuiz();
+              }}
+            >
               Kiểm tra
             </Button>
           ) : (

@@ -1,4 +1,5 @@
-import { leadPhases } from './leadPhases';
+// Ghi rõ đuôi .ts để script nhắc học chạy trực tiếp bằng Node được
+import { leadPhases } from './leadPhases.ts';
 
 export type Level = 'Cơ bản' | 'Trung cấp' | 'Nâng cao';
 

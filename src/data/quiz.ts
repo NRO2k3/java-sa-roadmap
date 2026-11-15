@@ -1,6 +1,8 @@
 export interface Question {
   id: string;
   phaseId: string;
+  /** Có khi câu hỏi thuộc trắc nghiệm cuối một bài học */
+  topicId?: string;
   question: string;
   options: string[];
   answer: number;

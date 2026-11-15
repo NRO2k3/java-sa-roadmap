@@ -2,6 +2,7 @@ import {
   AppstoreOutlined,
   BookOutlined,
   BulbOutlined,
+  FireOutlined,
   GithubOutlined,
   HomeOutlined,
   MenuOutlined,
@@ -11,6 +12,7 @@ import {
   QuestionCircleOutlined,
   SearchOutlined,
   SunOutlined,
+  SwitcherOutlined,
 } from '@ant-design/icons';
 import {
   App as AntApp,
@@ -24,27 +26,35 @@ import {
   Menu,
   Progress,
   Space,
+  Spin,
   Tooltip,
   Typography,
   theme as antTheme,
   type MenuProps,
 } from 'antd';
 import viVN from 'antd/locale/vi_VN';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import PhaseIcon from './components/PhaseIcon';
+import { useStudyTimer } from './activity';
 import TrackSwitch from './components/TrackSwitch';
+import { hasLesson, lessonPath } from './content/lessons';
 import { phases, trackSkillIds, type Phase } from './data/roadmap';
+import Habits from './pages/Habits';
 import Home from './pages/Home';
 import NotFound from './pages/NotFound';
 import Patterns from './pages/Patterns';
 import PhaseDetail from './pages/PhaseDetail';
 import ProgressPage from './pages/Progress';
-import Quiz from './pages/Quiz';
 import Resources from './pages/Resources';
 import Roadmap from './pages/Roadmap';
 import { percent, useProgress } from './progress';
 import { useTrack } from './track';
+
+// Các trang này kéo theo markdown, ngân hàng câu hỏi và flashcard nên tách chunk riêng
+const Lesson = lazy(() => import('./pages/Lesson'));
+const Quiz = lazy(() => import('./pages/Quiz'));
+const Flashcards = lazy(() => import('./pages/Flashcards'));
 
 const { Header, Sider, Content, Footer } = Layout;
 const THEME_KEY = 'java-sa-roadmap:theme';
@@ -76,8 +86,10 @@ const buildMenu = (trackPhaseList: Phase[]): MenuProps['items'] => [
   },
   { key: '/patterns', icon: <BulbOutlined />, label: <Link to="/patterns">Mẫu kiến trúc</Link> },
   { key: '/quiz', icon: <QuestionCircleOutlined />, label: <Link to="/quiz">Trắc nghiệm</Link> },
+  { key: '/flashcards', icon: <SwitcherOutlined />, label: <Link to="/flashcards">Flashcard ôn tập</Link> },
   { key: '/resources', icon: <BookOutlined />, label: <Link to="/resources">Tài nguyên</Link> },
   { key: '/progress', icon: <PieChartOutlined />, label: <Link to="/progress">Tiến độ của tôi</Link> },
+  { key: '/habits', icon: <FireOutlined />, label: <Link to="/habits">Thói quen học</Link> },
 ];
 
 function GlobalSearch() {
@@ -110,7 +122,7 @@ function GlobalSearch() {
       onChange={setValue}
       onSelect={(v: string) => {
         const [phaseId, topicId] = v.split('|');
-        navigate(`/phase/${phaseId}?topic=${topicId}`);
+        navigate(hasLesson(phaseId, topicId) ? lessonPath(phaseId, topicId) : `/phase/${phaseId}?topic=${topicId}`);
         setValue('');
       }}
       style={{ width: '100%', maxWidth: 360 }}
@@ -131,6 +143,7 @@ export default function App() {
   const { track, trackPhaseList } = useTrack();
   const trackIds = trackSkillIds(track);
   const overall = percent(countDone(trackIds), trackIds.length);
+  useStudyTimer();
 
   useEffect(() => {
     try {
@@ -146,7 +159,9 @@ export default function App() {
     window.scrollTo({ top: 0 });
   }, [location.pathname]);
 
-  const selectedKey = location.pathname;
+  // Trang bài học sáng menu của giai đoạn chứa nó
+  const lessonOf = location.pathname.match(/^\/lesson\/([^/]+)/);
+  const selectedKey = lessonOf ? `/phase/${lessonOf[1]}` : location.pathname;
   const openKeys = selectedKey.startsWith('/phase/') ? ['phases'] : [];
 
   const brand = (
@@ -236,16 +251,27 @@ export default function App() {
               </Space>
             </ThemedHeader>
             <Content style={{ padding: isDesktop ? 24 : 16 }}>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/roadmap" element={<Roadmap />} />
-                <Route path="/phase/:id" element={<PhaseDetail />} />
-                <Route path="/patterns" element={<Patterns />} />
-                <Route path="/quiz" element={<Quiz />} />
-                <Route path="/resources" element={<Resources />} />
-                <Route path="/progress" element={<ProgressPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <Suspense
+                fallback={
+                  <div style={{ textAlign: 'center', padding: 64 }}>
+                    <Spin size="large" />
+                  </div>
+                }
+              >
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/roadmap" element={<Roadmap />} />
+                  <Route path="/phase/:id" element={<PhaseDetail />} />
+                  <Route path="/lesson/:phaseId/:topicId" element={<Lesson />} />
+                  <Route path="/patterns" element={<Patterns />} />
+                  <Route path="/quiz" element={<Quiz />} />
+                  <Route path="/flashcards" element={<Flashcards />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/progress" element={<ProgressPage />} />
+                  <Route path="/habits" element={<Habits />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
             </Content>
             <Footer style={{ textAlign: 'center' }}>
               <Typography.Text type="secondary">

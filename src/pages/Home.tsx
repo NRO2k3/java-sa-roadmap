@@ -3,6 +3,7 @@ import { Button, Card, Col, List, Progress, Row, Space, Statistic, Steps, Tag, T
 import { Link } from 'react-router-dom';
 import { PhaseAvatar } from '../components/PhaseIcon';
 import TrackSwitch from '../components/TrackSwitch';
+import { hasLesson } from '../content/lessons';
 import { isSharedPhase, phaseSkillIds, trackSkillIds, trackWeeks } from '../data/roadmap';
 import { percent, useProgress } from '../progress';
 import { useTrack } from '../track';
@@ -13,7 +14,7 @@ export default function Home() {
   const { countDone } = useProgress();
   const { track, trackPhaseList } = useTrack();
   const skillIds = trackSkillIds(track);
-  const topicCount = trackPhaseList.reduce((n, p) => n + p.topics.length, 0);
+  const lessonCount = trackPhaseList.reduce((n, p) => n + p.topics.filter((t) => hasLesson(p.id, t.id)).length, 0);
   const progressByPhase = trackPhaseList.map((p) => {
     const ids = phaseSkillIds(p);
     return percent(countDone(ids), ids.length);
@@ -53,7 +54,7 @@ export default function Home() {
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         {[
           { title: 'Giai đoạn', value: trackPhaseList.length },
-          { title: 'Chủ đề', value: topicCount },
+          { title: 'Bài học', value: lessonCount },
           { title: 'Kỹ năng cần đạt', value: skillIds.length },
           { title: 'Thời gian ước tính', value: Math.round(trackWeeks(track) / 4.3), suffix: 'tháng' },
         ].map((s) => (

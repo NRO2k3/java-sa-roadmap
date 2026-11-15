@@ -8,11 +8,16 @@ Website học tập lộ trình trở thành **Solution Architect** và **Dev Le
   - **Solution Architect**: Java Core → Spring → Dữ liệu → Messaging → Microservices → Cloud/DevOps → Bảo mật → System Design → Năng lực SA → Chứng chỉ
   - **Dev Lead**: Java Core → Spring → Dữ liệu → Chất lượng & kỹ thuật phần mềm → Microservices → Vận hành & độ tin cậy → Lãnh đạo kỹ thuật → Quản lý con người → Delivery & Agile → Phát triển sự nghiệp Lead
 - Các giai đoạn kỹ thuật chung (Java Core, Spring, Dữ liệu, Microservices) **dùng chung tiến độ** cho cả hai lộ trình
+- **Bài học** cho từng chủ đề: giải thích kiến thức, ví dụ code Java/Spring có tô màu, lỗi thường gặp, bài tập thực hành, tóm tắt
+- **Trắc nghiệm cuối mỗi bài** (5 câu, có giải thích), lưu điểm cao nhất; đạt từ 80% có thể đánh dấu hoàn thành kỹ năng của bài
 - **Checklist kỹ năng** cho từng chủ đề, lưu tiến độ trong trình duyệt (localStorage), xuất/nhập file JSON
 - **Dự án cột mốc** cho mỗi giai đoạn và tài liệu tham khảo chính thức
 - **Mẫu kiến trúc**: 15 pattern (Saga, Outbox, CQRS, Circuit Breaker…) kèm công cụ Java và trade-off
-- **Trắc nghiệm** 50 câu có giải thích, xáo trộn câu hỏi và đáp án, lọc theo giai đoạn
+- **Trang ôn tập** gộp câu hỏi giai đoạn và câu hỏi cuối các bài, chọn 10/20/50 câu hoặc tất cả, lọc theo giai đoạn, xáo trộn câu hỏi và đáp án
 - **Tài nguyên**: sách, chứng chỉ (AWS/Azure/GCP/Oracle/Spring/CNCF/Scrum/PMP), website
+- **Flashcard ôn tập** lặp lại ngắt quãng (1, 3, 7, 14, 30 ngày), theo bài, giai đoạn hoặc mẫu kiến trúc, có phím tắt
+- **Thói quen học**: tự đếm phút học, bài đã đọc, câu hỏi, flashcard mỗi ngày; chuỗi ngày học, lịch nhiệt, đánh giá chăm chỉ hay lười
+- **Nhắc học qua Telegram** mỗi tối kèm flashcard và câu hỏi trong ngày (xem bên dưới)
 - Tìm kiếm chủ đề, chế độ sáng/tối, responsive trên điện thoại
 
 ## Chạy local
@@ -44,17 +49,38 @@ Mở http://localhost:5173
 
 Site dùng `HashRouter` và `base: './'` nên chạy được dưới bất kỳ tên repo nào, reload trang con không bị 404.
 
+## Nhắc học qua Telegram
+
+Workflow `.github/workflows/study-reminder.yml` chạy lúc 20:00 giờ Việt Nam mỗi ngày, gửi một tin nhắn gồm flashcard,
+câu hỏi trắc nghiệm (đáp án che bằng spoiler) và gợi ý một bài học.
+
+1. Trên Telegram, chat với **@BotFather**, gõ `/newbot` và làm theo hướng dẫn để lấy **bot token**.
+2. Mở chat với bot vừa tạo và gửi một tin bất kỳ (ví dụ `/start`).
+3. Mở `https://api.telegram.org/bot<TOKEN>/getUpdates` trên trình duyệt, tìm `"chat":{"id":...}` để lấy **chat id**.
+4. Trên GitHub: **Settings → Secrets and variables → Actions → New repository secret**, tạo
+   `TELEGRAM_BOT_TOKEN` và `TELEGRAM_CHAT_ID`.
+5. Vào tab **Actions → Study reminder (Telegram) → Run workflow** để gửi thử.
+
+Tuỳ chọn: tạo biến (tab *Variables*) `STUDY_TRACK` = `sa` hoặc `lead` để chỉ nhắc nội dung một lộ trình. Muốn đổi giờ,
+sửa dòng `cron` (giờ UTC). Lưu ý GitHub có thể chạy lịch trễ vài phút và tự tắt lịch nếu repo không có commit trong 60 ngày.
+
+Chạy thử không gửi: `DRY_RUN=1 node --experimental-strip-types scripts/telegram-reminder.mjs`
+
 ## Cấu trúc
 
 ```
 src/
   data/        # Nội dung: roadmap.ts (giai đoạn SA + định nghĩa 2 lộ trình), leadPhases.ts,
                # quiz.ts, patterns.ts, resources.ts
-  pages/       # Home, Roadmap, PhaseDetail, Patterns, Quiz, Resources, Progress
-  components/  # PhaseIcon, TrackSwitch
+  content/     # Bài học: <phaseId>/<topicId>.md, quiz.ts (5 câu mỗi bài), flashcards.ts
+  pages/       # Home, Roadmap, PhaseDetail, Lesson, Patterns, Quiz, Flashcards, Resources, Progress, Habits
+  components/  # PhaseIcon, TrackSwitch, Markdown, LessonQuiz, SkillChecklist, ResourceList
   progress.tsx # Lưu tiến độ (React context + localStorage)
+  activity.ts  # Ghi nhận hoạt động học mỗi ngày cho trang Thói quen
+scripts/       # telegram-reminder.mjs
   track.tsx    # Lộ trình đang chọn (SA / Dev Lead)
   App.tsx      # Layout, menu, tìm kiếm, theme
 ```
 
-Muốn thêm/sửa nội dung, chỉ cần chỉnh các file trong `src/data/`.
+Muốn thêm/sửa lộ trình, chỉnh các file trong `src/data/`. Muốn sửa bài học, chỉnh file markdown trong
+`src/content/<phaseId>/`; bài nào có file `.md` thì trang giai đoạn tự hiện nút "Vào học bài".

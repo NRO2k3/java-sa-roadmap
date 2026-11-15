@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PhaseIcon from '../components/PhaseIcon';
 import TrackSwitch from '../components/TrackSwitch';
+import { hasLesson, lessonPath } from '../content/lessons';
 import { levelColor, phaseSkillIds, trackWeeks, type Level } from '../data/roadmap';
 import { percent, useProgress } from '../progress';
 import { useTrack } from '../track';
@@ -77,7 +78,10 @@ export default function Roadmap() {
                   <Paragraph style={{ marginBottom: 8 }}>{p.goal}</Paragraph>
                   <Space size={[6, 6]} wrap>
                     {topics.map((t) => (
-                      <Link key={t.id} to={`/phase/${p.id}?topic=${t.id}`}>
+                      <Link
+                        key={t.id}
+                        to={hasLesson(p.id, t.id) ? lessonPath(p.id, t.id) : `/phase/${p.id}?topic=${t.id}`}
+                      >
                         <Tag color={levelColor[t.level]} style={{ cursor: 'pointer' }}>
                           {t.title}
                         </Tag>

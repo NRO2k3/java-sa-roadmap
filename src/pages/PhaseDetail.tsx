@@ -5,9 +5,10 @@ import {
   FlagOutlined,
   HomeOutlined,
   LeftOutlined,
-  LinkOutlined,
   QuestionCircleOutlined,
+  ReadOutlined,
   RightOutlined,
+  SwitcherOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
@@ -15,7 +16,6 @@ import {
   Breadcrumb,
   Button,
   Card,
-  Checkbox,
   Col,
   Divider,
   List,
@@ -29,30 +29,29 @@ import {
 import { useEffect } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { PhaseAvatar } from '../components/PhaseIcon';
+import ResourceList from '../components/ResourceList';
+import SkillChecklist from '../components/SkillChecklist';
+import { hasLesson, lessonPath } from '../content/lessons';
 import {
   levelColor,
   phaseById,
   phaseSkillIds,
-  resourceTypeLabel,
-  skillId,
   topicSkillIds,
   trackPhases,
-  tracks,
   type Phase,
   type Topic,
 } from '../data/roadmap';
 import { books } from '../data/resources';
+import { lessonKey, useLessonScores } from '../lessonScores';
 import { percent, useProgress } from '../progress';
-import { useTrack } from '../track';
+import { useTrackOfPhase } from '../track';
 import NotFound from './NotFound';
 
 const { Title, Paragraph, Text } = Typography;
 
-function TopicCard({ phase, topic }: { phase: Phase; topic: Topic }) {
-  const { isDone, toggle, setMany, countDone } = useProgress();
+function TopicCard({ phase, topic, score }: { phase: Phase; topic: Topic; score?: number }) {
+  const { countDone } = useProgress();
   const ids = topicSkillIds(phase.id, topic);
-  const doneCount = countDone(ids);
-  const allChecked = doneCount === ids.length;
 
   return (
     <Card
@@ -65,53 +64,31 @@ function TopicCard({ phase, topic }: { phase: Phase; topic: Topic }) {
       }
       extra={
         <Text type="secondary">
-          {doneCount}/{ids.length}
+          {countDone(ids)}/{ids.length}
         </Text>
       }
       style={{ scrollMarginTop: 80 }}
     >
       <Paragraph type="secondary">{topic.description}</Paragraph>
-      <Checkbox
-        indeterminate={doneCount > 0 && !allChecked}
-        checked={allChecked}
-        onChange={(e) => setMany(ids, e.target.checked)}
-        style={{ marginBottom: 4 }}
-      >
-        <Text strong>Kỹ năng cần đạt</Text>
-      </Checkbox>
-      <div style={{ paddingLeft: 24 }}>
-        {topic.skills.map((skill, i) => {
-          const id = skillId(phase.id, topic.id, i);
-          const checked = isDone(id);
-          return (
-            <div className="skill-item" key={id}>
-              <Checkbox checked={checked} onChange={(e) => toggle(id, e.target.checked)}>
-                <span className={checked ? 'skill-done' : undefined}>{skill}</span>
-              </Checkbox>
-            </div>
-          );
-        })}
-      </div>
+      {hasLesson(phase.id, topic.id) && (
+        <Space wrap style={{ marginBottom: 16 }}>
+          <Link to={lessonPath(phase.id, topic.id)}>
+            <Button type="primary" icon={<ReadOutlined />}>
+              Vào học bài
+            </Button>
+          </Link>
+          {score !== undefined && (
+            <Tag color={score >= 80 ? 'success' : 'warning'}>Trắc nghiệm bài: {score}%</Tag>
+          )}
+        </Space>
+      )}
+      <SkillChecklist phase={phase} topic={topic} />
       {topic.resources.length > 0 && (
         <>
           <Divider orientation="left" plain style={{ margin: '12px 0 4px' }}>
             Tài liệu tham khảo
           </Divider>
-          <List
-            size="small"
-            split={false}
-            dataSource={topic.resources}
-            renderItem={(r) => (
-              <List.Item style={{ paddingInline: 0 }}>
-                <Space>
-                  <Tag>{resourceTypeLabel[r.type]}</Tag>
-                  <a href={r.url} target="_blank" rel="noreferrer">
-                    <LinkOutlined /> {r.title}
-                  </a>
-                </Space>
-              </List.Item>
-            )}
-          />
+          <ResourceList resources={topic.resources} />
         </>
       )}
     </Card>
@@ -123,18 +100,12 @@ export default function PhaseDetail() {
   const [params] = useSearchParams();
   const { countDone, setMany } = useProgress();
   const { token } = theme.useToken();
-  const { track, setTrack } = useTrack();
+  const { scores } = useLessonScores();
   const phase = id ? phaseById(id) : undefined;
-  // Link tới giai đoạn thuộc lộ trình khác (từ tìm kiếm, link chia sẻ) thì chuyển sang lộ trình đó
-  const activeTrack =
-    phase && !track.phaseIds.includes(phase.id) ? tracks.find((t) => t.phaseIds.includes(phase.id))! : track;
+  const activeTrack = useTrackOfPhase(phase?.id);
   const trackPhaseList = trackPhases(activeTrack);
   const index = phase ? trackPhaseList.indexOf(phase) : -1;
   const focusTopic = params.get('topic');
-
-  useEffect(() => {
-    if (activeTrack.id !== track.id) setTrack(activeTrack.id);
-  }, [activeTrack.id, track.id, setTrack]);
 
   useEffect(() => {
     if (!focusTopic) return;
@@ -213,7 +184,7 @@ export default function PhaseDetail() {
         <Col xs={24} lg={16}>
           <Space direction="vertical" size="middle" style={{ width: '100%' }}>
             {phase.topics.map((t) => (
-              <TopicCard key={t.id} phase={phase} topic={t} />
+              <TopicCard key={t.id} phase={phase} topic={t} score={scores[lessonKey(phase.id, t.id)]} />
             ))}
           </Space>
         </Col>
@@ -275,6 +246,11 @@ export default function PhaseDetail() {
             <Link to={`/quiz?phase=${phase.id}`}>
               <Button block icon={<QuestionCircleOutlined />}>
                 Làm trắc nghiệm giai đoạn này
+              </Button>
+            </Link>
+            <Link to={`/flashcards?scope=phase:${phase.id}`}>
+              <Button block icon={<SwitcherOutlined />}>
+                Ôn flashcard giai đoạn này
               </Button>
             </Link>
           </Space>

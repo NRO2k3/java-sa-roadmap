@@ -45,3 +45,16 @@ export function useTrack() {
   if (!ctx) throw new Error('useTrack phải dùng bên trong TrackProvider');
   return ctx;
 }
+
+/** Mở trang của giai đoạn thuộc lộ trình khác (từ tìm kiếm, link chia sẻ) thì chuyển sang lộ trình đó */
+export function useTrackOfPhase(phaseId: string | undefined): Track {
+  const { track, setTrack } = useTrack();
+  const active =
+    phaseId && !track.phaseIds.includes(phaseId) ? (tracks.find((t) => t.phaseIds.includes(phaseId)) ?? track) : track;
+
+  useEffect(() => {
+    if (active.id !== track.id) setTrack(active.id);
+  }, [active.id, track.id, setTrack]);
+
+  return active;
+}

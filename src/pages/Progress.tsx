@@ -9,6 +9,27 @@ import { useTrack } from '../track';
 
 const { Title, Paragraph, Text } = Typography;
 
+// Dữ liệu phụ được sao lưu cùng tiến độ kỹ năng
+const BACKUP_KEYS = [
+  'java-sa-roadmap:lesson-scores',
+  'java-sa-roadmap:flashcards',
+  'java-sa-roadmap:activity',
+  'java-sa-roadmap:daily-goal',
+];
+
+function readBackup() {
+  const extra: Record<string, unknown> = {};
+  for (const key of BACKUP_KEYS) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw !== null) extra[key] = JSON.parse(raw);
+    } catch {
+      // bỏ qua
+    }
+  }
+  return extra;
+}
+
 interface PhaseRow {
   phase: Phase;
   order: number;
@@ -41,7 +62,8 @@ export default function ProgressPage() {
   const weeksLeft = Math.round(rows.reduce((sum, r) => sum + r.phase.weeks * (1 - r.done / r.total), 0));
 
   const exportProgress = () => {
-    const blob = new Blob([JSON.stringify({ version: 1, done: [...done] }, null, 2)], { type: 'application/json' });
+    const data = { version: 2, done: [...done], extra: readBackup() };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -52,12 +74,16 @@ export default function ProgressPage() {
 
   const importProgress = async (file: File) => {
     try {
-      const data = JSON.parse(await file.text()) as { done?: unknown };
+      const data = JSON.parse(await file.text()) as { done?: unknown; extra?: Record<string, unknown> };
       if (!Array.isArray(data.done)) throw new Error('invalid');
       const valid = new Set(allSkillIds);
       const ids = data.done.filter((x): x is string => typeof x === 'string' && valid.has(x));
       importIds(ids);
-      message.success(`Đã nhập ${ids.length} kỹ năng`);
+      // File cũ (version 1) chỉ có kỹ năng
+      for (const key of BACKUP_KEYS) {
+        if (data.extra?.[key] !== undefined) localStorage.setItem(key, JSON.stringify(data.extra[key]));
+      }
+      message.success(`Đã nhập ${ids.length} kỹ năng cùng điểm bài, flashcard và lịch sử học`);
     } catch {
       message.error('File không hợp lệ');
     }
