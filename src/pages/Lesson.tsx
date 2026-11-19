@@ -6,6 +6,7 @@ import {
   QuestionCircleOutlined,
   ReloadOutlined,
   RightOutlined,
+  MessageOutlined,
   SwitcherOutlined,
 } from '@ant-design/icons';
 import { Alert, Breadcrumb, Button, Card, Col, List, Result, Row, Skeleton, Space, Tag, Typography } from 'antd';
@@ -15,8 +16,7 @@ import LessonQuiz from '../components/LessonQuiz';
 import Markdown from '../components/Markdown';
 import ResourceList from '../components/ResourceList';
 import SkillChecklist from '../components/SkillChecklist';
-import { topicCards } from '../content/flashcards';
-import { hasLesson, lessonPath, loadLesson } from '../content/lessons';
+import { hasFlashcards, hasInterview, hasLesson, lessonPath, loadLesson } from '../content/lessons';
 import { topicQuestions } from '../content/quizzes';
 import { levelColor, phaseById, topicSkillIds, trackPhases, type Phase, type Topic, type Track } from '../data/roadmap';
 import { logLesson, logQuiz } from '../activity';
@@ -72,7 +72,6 @@ function LessonView({ phase, topic, track }: { phase: Phase; topic: Topic; track
   }, [content]);
 
   const questions = useMemo(() => topicQuestions(phase.id, topic.id), [phase.id, topic.id]);
-  const cardCount = topicCards(phase.id, topic.id).length;
   const phaseList = trackPhases(track);
   const lessons = phaseList.flatMap((p) => p.topics.map((t) => ({ phase: p, topic: t })));
   const index = lessons.findIndex((l) => l.topic === topic);
@@ -210,10 +209,17 @@ function LessonView({ phase, topic, track }: { phase: Phase; topic: Topic; track
                 />
               </Card>
             )}
-            {cardCount > 0 && (
+            {hasFlashcards(phase.id) && (
               <Link to={`/flashcards?scope=topic:${phase.id}/${topic.id}`}>
                 <Button block icon={<SwitcherOutlined />}>
-                  Ôn {cardCount} flashcard của bài
+                  Ôn flashcard của bài
+                </Button>
+              </Link>
+            )}
+            {hasInterview(phase.id) && (
+              <Link to={`/interview?scope=topic:${phase.id}/${topic.id}`}>
+                <Button block icon={<MessageOutlined />}>
+                  Câu hỏi phỏng vấn của bài
                 </Button>
               </Link>
             )}

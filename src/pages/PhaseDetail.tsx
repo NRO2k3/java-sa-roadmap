@@ -9,6 +9,7 @@ import {
   ReadOutlined,
   RightOutlined,
   SwitcherOutlined,
+  MessageOutlined,
   UserOutlined,
 } from '@ant-design/icons';
 import {
@@ -251,6 +252,11 @@ export default function PhaseDetail() {
             <Link to={`/flashcards?scope=phase:${phase.id}`}>
               <Button block icon={<SwitcherOutlined />}>
                 Ôn flashcard giai đoạn này
+              </Button>
+            </Link>
+            <Link to={`/interview?scope=phase:${phase.id}`}>
+              <Button block icon={<MessageOutlined />}>
+                Câu hỏi phỏng vấn giai đoạn này
               </Button>
             </Link>
           </Space>

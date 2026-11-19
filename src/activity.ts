@@ -16,6 +16,8 @@ export interface DayActivity {
   cards: number;
   /** Số kỹ năng được đánh dấu đạt */
   skills: number;
+  /** Số lượt ôn câu hỏi phỏng vấn (dữ liệu cũ không có) */
+  interview?: number;
 }
 
 /** Hoạt động theo ngày (giờ máy), key dạng YYYY-MM-DD */
@@ -32,7 +34,7 @@ export const emptyDay = (): DayActivity => ({ minutes: 0, lessons: [], quiz: 0, 
 
 /** Ngày được tính là có học: ít nhất 5 phút hoặc có làm bài, ôn thẻ, đánh dấu kỹ năng */
 export const isActiveDay = (d?: DayActivity) =>
-  !!d && (d.minutes >= 5 || d.lessons.length > 0 || d.quiz > 0 || d.cards > 0 || d.skills > 0);
+  !!d && (d.minutes >= 5 || d.lessons.length > 0 || d.quiz > 0 || d.cards > 0 || d.skills > 0 || (d.interview ?? 0) > 0);
 
 function load(): ActivityLog {
   try {
@@ -64,6 +66,7 @@ export const logLesson = (key: string) =>
 export const logQuiz = (count = 1) => update((d) => (d.quiz += count));
 export const logCards = (count = 1) => update((d) => (d.cards += count));
 export const logSkills = (count: number) => update((d) => (d.skills += count));
+export const logInterview = () => update((d) => (d.interview = (d.interview ?? 0) + 1));
 
 /** Đếm phút học: chỉ tính khi tab đang hiện và có thao tác trong 2 phút gần nhất */
 export function useStudyTimer() {

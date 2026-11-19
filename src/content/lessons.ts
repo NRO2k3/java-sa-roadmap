@@ -1,7 +1,14 @@
 // Mỗi bài học là một file markdown, tải theo nhu cầu nên không làm nặng bundle chính
 const lessonFiles = import.meta.glob<string>('./*/*.md', { query: '?raw', import: 'default' });
 
+// Chỉ dùng để biết giai đoạn có dữ liệu hay không, không tải nội dung
+const flashcardFiles = import.meta.glob('./*/flashcards.ts');
+const interviewFiles = import.meta.glob('./*/interview.ts');
+
 const fileOf = (phaseId: string, topicId: string) => `./${phaseId}/${topicId}.md`;
+
+export const hasFlashcards = (phaseId: string) => `./${phaseId}/flashcards.ts` in flashcardFiles;
+export const hasInterview = (phaseId: string) => `./${phaseId}/interview.ts` in interviewFiles;
 
 export const lessonPath = (phaseId: string, topicId: string) => `/lesson/${phaseId}/${topicId}`;
 

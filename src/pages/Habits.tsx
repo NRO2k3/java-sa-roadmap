@@ -40,6 +40,7 @@ function describe(day: DayActivity) {
   if (day.quiz) parts.push(`${day.quiz} câu hỏi`);
   if (day.cards) parts.push(`${day.cards} flashcard`);
   if (day.skills) parts.push(`${day.skills} kỹ năng`);
+  if (day.interview) parts.push(`${day.interview} câu phỏng vấn`);
   return parts.join(' · ');
 }
 
@@ -164,7 +165,7 @@ function DailyChart({ log, goal }: { log: ActivityLog; goal: number }) {
         <Table
           size="small"
           pagination={false}
-          scroll={{ x: 520 }}
+          scroll={{ x: 600 }}
           rowKey={(r) => dayKey(r.date)}
           dataSource={[...days].reverse()}
           columns={[
@@ -174,6 +175,7 @@ function DailyChart({ log, goal }: { log: ActivityLog; goal: number }) {
             { title: 'Câu hỏi', render: (_, r) => r.day.quiz, align: 'right' },
             { title: 'Flashcard', render: (_, r) => r.day.cards, align: 'right' },
             { title: 'Kỹ năng', render: (_, r) => r.day.skills, align: 'right' },
+            { title: 'Phỏng vấn', render: (_, r) => r.day.interview ?? 0, align: 'right' },
           ]}
         />
       )}

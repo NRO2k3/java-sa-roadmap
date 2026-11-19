@@ -3,6 +3,7 @@ import {
   BookOutlined,
   BulbOutlined,
   FireOutlined,
+  MessageOutlined,
   GithubOutlined,
   HomeOutlined,
   MenuOutlined,
@@ -55,6 +56,7 @@ import { useTrack } from './track';
 const Lesson = lazy(() => import('./pages/Lesson'));
 const Quiz = lazy(() => import('./pages/Quiz'));
 const Flashcards = lazy(() => import('./pages/Flashcards'));
+const Interview = lazy(() => import('./pages/Interview'));
 
 const { Header, Sider, Content, Footer } = Layout;
 const THEME_KEY = 'java-sa-roadmap:theme';
@@ -87,6 +89,7 @@ const buildMenu = (trackPhaseList: Phase[]): MenuProps['items'] => [
   { key: '/patterns', icon: <BulbOutlined />, label: <Link to="/patterns">Mẫu kiến trúc</Link> },
   { key: '/quiz', icon: <QuestionCircleOutlined />, label: <Link to="/quiz">Trắc nghiệm</Link> },
   { key: '/flashcards', icon: <SwitcherOutlined />, label: <Link to="/flashcards">Flashcard ôn tập</Link> },
+  { key: '/interview', icon: <MessageOutlined />, label: <Link to="/interview">Ôn phỏng vấn</Link> },
   { key: '/resources', icon: <BookOutlined />, label: <Link to="/resources">Tài nguyên</Link> },
   { key: '/progress', icon: <PieChartOutlined />, label: <Link to="/progress">Tiến độ của tôi</Link> },
   { key: '/habits', icon: <FireOutlined />, label: <Link to="/habits">Thói quen học</Link> },
@@ -266,6 +269,7 @@ export default function App() {
                   <Route path="/patterns" element={<Patterns />} />
                   <Route path="/quiz" element={<Quiz />} />
                   <Route path="/flashcards" element={<Flashcards />} />
+                  <Route path="/interview" element={<Interview />} />
                   <Route path="/resources" element={<Resources />} />
                   <Route path="/progress" element={<ProgressPage />} />
                   <Route path="/habits" element={<Habits />} />

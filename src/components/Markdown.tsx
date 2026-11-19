@@ -1,23 +1,9 @@
 import { CopyOutlined } from '@ant-design/icons';
 import { App, Button, Typography, theme } from 'antd';
-import hljs from 'highlight.js/lib/core';
-import bash from 'highlight.js/lib/languages/bash';
-import dockerfile from 'highlight.js/lib/languages/dockerfile';
-import java from 'highlight.js/lib/languages/java';
-import json from 'highlight.js/lib/languages/json';
-import plaintext from 'highlight.js/lib/languages/plaintext';
-import properties from 'highlight.js/lib/languages/properties';
-import sql from 'highlight.js/lib/languages/sql';
-import xml from 'highlight.js/lib/languages/xml';
-import yaml from 'highlight.js/lib/languages/yaml';
 import { useMemo, type CSSProperties } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-
-// Chỉ đăng ký các ngôn ngữ bài học dùng để bundle nhỏ
-Object.entries({ bash, dockerfile, java, json, plaintext, properties, sql, xml, yaml }).forEach(([name, lang]) =>
-  hljs.registerLanguage(name, lang),
-);
+import { highlight } from '../highlight';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -43,10 +29,7 @@ export function slugify(text: string) {
 
 function CodeBlock({ code, lang }: { code: string; lang: string }) {
   const { message } = App.useApp();
-  const html = useMemo(
-    () => hljs.highlight(code, { language: hljs.getLanguage(lang) ? lang : 'plaintext' }).value,
-    [code, lang],
-  );
+  const html = useMemo(() => highlight(code, lang), [code, lang]);
 
   const copy = () =>
     navigator.clipboard.writeText(code).then(

@@ -301,6 +301,212 @@ body {
   max-width: 640px;
 }
 
+/* Thẻ câu hỏi phỏng vấn, dạng ảnh để xem và tải về */
+.iv-card {
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--iv-bg);
+  color: var(--iv-text);
+  border: 1px solid var(--iv-border);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.iv-head {
+  padding: 20px 22px 22px;
+  color: #fff;
+}
+
+.iv-head-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.iv-kicker {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.iv-level {
+  flex: none;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.iv-level-junior {
+  color: #389e0d;
+}
+
+.iv-level-middle {
+  color: #0958d9;
+}
+
+.iv-level-senior {
+  color: #c41d7f;
+}
+
+.iv-question {
+  font-size: clamp(18px, 2.2vw, 21px);
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.iv-body-wrap {
+  position: relative;
+}
+
+.iv-body {
+  padding: 18px 22px 8px;
+}
+
+.iv-hidden {
+  filter: blur(7px);
+  user-select: none;
+  pointer-events: none;
+  min-height: 180px;
+}
+
+.iv-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iv-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--iv-muted);
+  margin-bottom: 8px;
+}
+
+.iv-points {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+}
+
+.iv-points li {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.iv-num {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--iv-accent);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iv-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.88em;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--iv-soft);
+  border: 1px solid var(--iv-border);
+}
+
+.iv-table-wrap {
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+
+.iv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.iv-table th,
+.iv-table td {
+  border: 1px solid var(--iv-border);
+  padding: 6px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.iv-table th {
+  background: var(--iv-soft);
+  font-weight: 600;
+}
+
+.iv-table tr > :first-child {
+  font-weight: 600;
+}
+
+.iv-code {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #1e1e2e;
+  overflow-x: auto;
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.iv-code code {
+  padding: 0;
+  border: none;
+  background: none;
+  color: #cdd6f4;
+  font-size: inherit;
+}
+
+.iv-tip {
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--iv-tip-bg);
+  border: 1px solid var(--iv-tip-border);
+}
+
+.iv-follow {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  color: var(--iv-muted);
+}
+
+.iv-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-top: 1px solid var(--iv-border);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--iv-muted);
+}
+
+.iv-foot-phase {
+  margin-left: auto;
+  font-weight: 400;
+  text-align: right;
+}
+
 /* Trang thói quen học */
 .habit-bars {
   position: relative;

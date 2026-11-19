@@ -37,9 +37,17 @@ const lessons = [];
 for (const [index, phase] of orderedPhases.entries()) {
   const quiz = await loadByTopic(phase, 'quiz.ts');
   const cards = await loadByTopic(phase, 'flashcards.ts');
+  const interview = await loadByTopic(phase, 'interview.ts');
   for (const topic of phase.topics) {
     if (!existsSync(new URL(`${phase.id}/${topic.id}.md`, contentDir))) continue;
-    lessons.push({ phase, phaseOrder: index + 1, topic, questions: quiz[topic.id] ?? [], cards: cards[topic.id] ?? [] });
+    lessons.push({
+      phase,
+      phaseOrder: index + 1,
+      topic,
+      questions: quiz[topic.id] ?? [],
+      cards: cards[topic.id] ?? [],
+      interview: interview[topic.id] ?? [],
+    });
   }
 }
 if (lessons.length === 0) {
@@ -59,6 +67,11 @@ const pick = (items) => items[Math.floor(Math.random() * items.length)];
 const escape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const shorten = (text, max) => (text.length <= max ? text : `${text.slice(0, text.lastIndexOf(' ', max - 1))}…`);
 const pageUrl = (path) => `${siteUrl}#${path}`;
+// Nội dung phỏng vấn dùng `code` và **đậm** như trên web
+const rich = (text) =>
+  escape(text)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
 
 const card = pick(lesson.cards);
 const lines = [
@@ -78,6 +91,18 @@ if (card) {
     '<i>Tự trả lời trong đầu trước, rồi chạm vào ô mờ để xem đáp án.</i>',
   );
 }
+const interviewItem = pick(lesson.interview);
+if (interviewItem) {
+  lines.push(
+    '',
+    `<b>🎤 Câu hỏi phỏng vấn</b> · <i>${escape(interviewItem.level)}</i>`,
+    `<blockquote><b>${escape(interviewItem.question)}</b></blockquote>`,
+    '<i>Tự trả lời thành tiếng, rồi chạm để xem ý chính:</i>',
+    `<tg-spoiler>${interviewItem.points.map((p, i) => `${i + 1}. ${rich(p)}`).join('\n')}${
+      interviewItem.tip ? `\n💡 ${rich(interviewItem.tip)}` : ''
+    }</tg-spoiler>`,
+  );
+}
 lines.push('', '⏱ <i>Chỉ cần 15 phút: đọc bài → làm 5 câu trắc nghiệm → ôn flashcard.</i>');
 
 const keyboard = {
@@ -85,8 +110,9 @@ const keyboard = {
     [{ text: '📖 Học bài hôm nay', url: pageUrl(`/lesson/${lesson.phase.id}/${lesson.topic.id}`) }],
     [
       { text: '🃏 Ôn flashcard', url: pageUrl('/flashcards') },
-      { text: '🔥 Chuỗi ngày học', url: pageUrl('/habits') },
+      { text: '🎤 Ôn phỏng vấn', url: pageUrl(`/interview?scope=topic:${lesson.phase.id}/${lesson.topic.id}`) },
     ],
+    [{ text: '🔥 Chuỗi ngày học', url: pageUrl('/habits') }],
   ],
 };
 

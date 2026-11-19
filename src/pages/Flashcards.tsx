@@ -15,7 +15,7 @@ import {
   Typography,
   theme,
 } from 'antd';
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from 'react';
+import { useMemo, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import TrackSwitch from '../components/TrackSwitch';
 import { lessonCards, patternCards, topicCards, type Card as FlashCard } from '../content/flashcards';
@@ -23,7 +23,8 @@ import { lessonPath } from '../content/lessons';
 import { phaseById } from '../data/roadmap';
 import { INTERVAL_DAYS, MASTERED_BOX, isDue, useFlashcardReview, type ReviewStates } from '../flashcardReview';
 import { shuffle } from '../quizUtils';
-import { useTrack } from '../track';
+import { useTrack, useTrackOfPhase } from '../track';
+import { useReviewKeys } from '../useReviewKeys';
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -41,8 +42,12 @@ function sourceOf(card: FlashCard) {
   return { text: topic ? topic.title : (phase?.title ?? ''), link: lessonPath(card.phaseId!, card.topicId!) };
 }
 
+/** Giai đoạn trong tham số scope (phase:<id> hoặc topic:<id>/<topic>) */
+const phaseOfScope = (scope: string | null) => scope?.match(/^(?:phase|topic):([^/]+)/)?.[1];
+
 export default function Flashcards() {
-  const { track } = useTrack();
+  const [params] = useSearchParams();
+  const track = useTrackOfPhase(phaseOfScope(params.get('scope')));
   // Đổi lộ trình thì phiên ôn bắt đầu lại
   return <FlashcardDeck key={track.id} />;
 }
@@ -228,22 +233,7 @@ function Session({ cards, states, onGrade, onRestart, empty }: SessionProps) {
     setFlipped(false);
   };
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target.closest('input, textarea, .ant-select')) return;
-      if (e.key === ' ' || e.key === 'Enter') {
-        e.preventDefault();
-        setFlipped((f) => !f);
-      } else if (e.key === 'ArrowRight' || e.key === '2') {
-        answer(true);
-      } else if (e.key === 'ArrowLeft' || e.key === '1') {
-        answer(false);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  });
+  useReviewKeys({ flip: () => setFlipped((f) => !f), answer });
 
   if (cards.length === 0) return <Card>{empty}</Card>;
 

@@ -13,6 +13,7 @@ const { Title, Paragraph, Text } = Typography;
 const BACKUP_KEYS = [
   'java-sa-roadmap:lesson-scores',
   'java-sa-roadmap:flashcards',
+  'java-sa-roadmap:interview',
   'java-sa-roadmap:activity',
   'java-sa-roadmap:daily-goal',
 ];

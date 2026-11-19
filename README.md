@@ -16,6 +16,8 @@ Website học tập lộ trình trở thành **Solution Architect** và **Dev Le
 - **Trang ôn tập** gộp câu hỏi giai đoạn và câu hỏi cuối các bài, chọn 10/20/50 câu hoặc tất cả, lọc theo giai đoạn, xáo trộn câu hỏi và đáp án
 - **Tài nguyên**: sách, chứng chỉ (AWS/Azure/GCP/Oracle/Spring/CNCF/Scrum/PMP), website
 - **Flashcard ôn tập** lặp lại ngắt quãng (1, 3, 7, 14, 30 ngày), theo bài, giai đoạn hoặc mẫu kiến trúc, có phím tắt
+- **Ôn phỏng vấn**: câu hỏi phỏng vấn hay gặp theo từng bài, dạng thẻ ảnh (ý chính, bảng so sánh, code, mẹo, câu hỏi
+  nối tiếp), lọc theo cấp độ Junior/Middle/Senior, chế độ luyện che đáp án, tải thẻ thành ảnh PNG
 - **Thói quen học**: tự đếm phút học, bài đã đọc, câu hỏi, flashcard mỗi ngày; chuỗi ngày học, lịch nhiệt, đánh giá chăm chỉ hay lười
 - **Nhắc học qua Telegram** mỗi tối kèm flashcard và câu hỏi trong ngày (xem bên dưới)
 - Tìm kiếm chủ đề, chế độ sáng/tối, responsive trên điện thoại
@@ -74,8 +76,8 @@ Chạy thử không gửi: `DRY_RUN=1 node --experimental-strip-types scripts/te
 src/
   data/        # Nội dung: roadmap.ts (giai đoạn SA + định nghĩa 2 lộ trình), leadPhases.ts,
                # quiz.ts, patterns.ts, resources.ts
-  content/     # Bài học: <phaseId>/<topicId>.md, quiz.ts (5 câu mỗi bài), flashcards.ts
-  pages/       # Home, Roadmap, PhaseDetail, Lesson, Patterns, Quiz, Flashcards, Resources, Progress, Habits
+  content/     # Bài học: <phaseId>/<topicId>.md, quiz.ts (5 câu mỗi bài), flashcards.ts, interview.ts
+  pages/       # Home, Roadmap, PhaseDetail, Lesson, Patterns, Quiz, Flashcards, Interview, Resources, Progress, Habits
   components/  # PhaseIcon, TrackSwitch, Markdown, LessonQuiz, SkillChecklist, ResourceList
   progress.tsx # Lưu tiến độ (React context + localStorage)
   activity.ts  # Ghi nhận hoạt động học mỗi ngày cho trang Thói quen
