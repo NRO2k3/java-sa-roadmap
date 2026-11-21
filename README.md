@@ -53,7 +53,9 @@ Site dùng `HashRouter` và `base: './'` nên chạy được dưới bất kỳ
 
 ## Nhắc học qua Telegram
 
-Workflow `.github/workflows/study-reminder.yml` chạy lúc 20:00 giờ Việt Nam mỗi ngày. Mỗi ngày là một bài theo thứ tự
+Workflow `.github/workflows/study-reminder.yml` gửi một tin mỗi tối, từ 19:00 giờ Việt Nam. Lịch của GitHub hay bị trễ
+nhiều tiếng, nên workflow chạy mỗi giờ (phút 41) và chỉ lần chạy đầu tiên rơi vào khung 19:00–23:59 mới gửi; các lần
+sau trong ngày tự bỏ qua. Mỗi ngày là một bài theo thứ tự
 lộ trình: tin nhắn giới thiệu bài kèm flashcard (đáp án che bằng spoiler) và nút mở bài, tiếp theo là một câu quiz
 dạng poll của Telegram (chọn đáp án là thấy đúng/sai và giải thích).
 
@@ -65,8 +67,9 @@ dạng poll của Telegram (chọn đáp án là thấy đúng/sai và giải th
 5. Vào tab **Actions → Study reminder (Telegram) → Run workflow** để gửi thử.
 
 Tuỳ chọn: tạo biến (tab *Variables*) `STUDY_TRACK` = `sa` hoặc `lead` để chỉ nhắc nội dung một lộ trình, và
-`STUDY_START_DATE` (dạng `2026-11-15`) là ngày gửi bài 1. Muốn đổi giờ,
-sửa dòng `cron` (giờ UTC). Lưu ý GitHub có thể chạy lịch trễ vài phút và tự tắt lịch nếu repo không có commit trong 60 ngày.
+`STUDY_START_DATE` (dạng `2026-11-15`) là ngày gửi bài 1, và `STUDY_REMIND_HOUR` (ví dụ `20`) là giờ bắt đầu được gửi
+mỗi tối. Chạy tay bằng **Run workflow** luôn gửi ngay và không tính vào lượt của tối hôm đó. Lưu ý GitHub tự tắt lịch
+nếu repo không có commit trong 60 ngày; khi đó vào tab Actions bật lại.
 
 Chạy thử không gửi: `DRY_RUN=1 node --experimental-strip-types scripts/telegram-reminder.mjs`
 

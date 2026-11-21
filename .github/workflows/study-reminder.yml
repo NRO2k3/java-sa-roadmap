@@ -2,22 +2,59 @@ name: Study reminder (Telegram)
 
 on:
   schedule:
-    # 13:00 UTC = 20:00 giờ Việt Nam. Sửa dòng này để đổi giờ nhắc.
-    - cron: '0 13 * * *'
+    # Lịch của GitHub hay bị trễ (đã có ngày trễ 6–10 tiếng), nên chạy mỗi giờ ở phút lẻ để tránh giờ cao điểm,
+    # rồi bước "Chọn lần gửi" chỉ cho lần chạy đầu tiên rơi vào khung giờ tối gửi tin.
+    - cron: '41 * * * *'
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# Chạy lần lượt để hai lần chạy sát nhau không cùng gửi
+concurrency:
+  group: study-reminder
+  cancel-in-progress: false
+
 jobs:
   remind:
     runs-on: ubuntu-latest
+    env:
+      # Giờ Việt Nam bắt đầu gửi, gửi được tới 23:59. Đổi bằng biến repo STUDY_REMIND_HOUR.
+      REMIND_HOUR: ${{ vars.STUDY_REMIND_HOUR || '19' }}
     steps:
+      - name: Kiểm tra khung giờ
+        id: when
+        run: |
+          echo "date=$(TZ=Asia/Ho_Chi_Minh date +%F)" >> "$GITHUB_OUTPUT"
+          hour=$(TZ=Asia/Ho_Chi_Minh date +%-H)
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ] || [ "$hour" -ge "$REMIND_HOUR" ]; then
+            echo "in_window=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Mới $hour giờ (giờ Việt Nam), chưa tới khung giờ nhắc từ $REMIND_HOUR giờ."
+          fi
+
+      - name: Hôm nay đã gửi chưa
+        id: sent
+        if: github.event_name == 'schedule' && steps.when.outputs.in_window == 'true'
+        uses: actions/cache/restore@v4
+        with:
+          path: .reminder-sent
+          key: study-reminder-sent-${{ steps.when.outputs.date }}
+          lookup-only: true
+
+      - name: Chọn lần gửi
+        id: go
+        if: steps.when.outputs.in_window == 'true' && steps.sent.outputs.cache-hit != 'true'
+        run: echo "send=true" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@v4
+        if: steps.go.outputs.send == 'true'
       - uses: actions/setup-node@v4
+        if: steps.go.outputs.send == 'true'
         with:
           node-version: 22
       - name: Gửi lời nhắc
+        if: steps.go.outputs.send == 'true'
         run: node --experimental-strip-types --no-warnings scripts/telegram-reminder.mjs
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
@@ -26,3 +63,14 @@ jobs:
           TRACK: ${{ vars.STUDY_TRACK }}
           # Tuỳ chọn: biến repo STUDY_START_DATE (YYYY-MM-DD) là ngày gửi bài 1, mỗi ngày sau tiến một bài
           START_DATE: ${{ vars.STUDY_START_DATE }}
+
+      # Đánh dấu đã gửi hôm nay; chạy tay (gửi thử) không đánh dấu để tối vẫn nhận tin như thường
+      - name: Ghi nhận đã gửi
+        if: github.event_name == 'schedule' && steps.go.outputs.send == 'true'
+        run: echo "${{ steps.when.outputs.date }}" > .reminder-sent
+      - uses: actions/cache/save@v4
+        if: github.event_name == 'schedule' && steps.go.outputs.send == 'true'
+        continue-on-error: true
+        with:
+          path: .reminder-sent
+          key: study-reminder-sent-${{ steps.when.outputs.date }}
